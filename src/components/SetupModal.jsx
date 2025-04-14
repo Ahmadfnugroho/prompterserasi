@@ -5,6 +5,8 @@ function SetupModal({ title, events, initialNotes, onSave, onClose }) {
   const [eventItems, setEventItems] = useState([...events]);
   const [notes, setNotes] = useState(initialNotes);
   const [localTitle, setLocalTitle] = useState(title);
+  const [showBulkEditor, setShowBulkEditor] = useState(false);
+  const [bulkText, setBulkText] = useState("");
 
   const handleNameChange = (index, newName) => {
     const updated = [...eventItems];
@@ -26,6 +28,26 @@ function SetupModal({ title, events, initialNotes, onSave, onClose }) {
 
   const handleAdd = () => {
     setEventItems([...eventItems, { name: "", duration: 1 }]);
+  };
+
+  const handleBulkImport = () => {
+    const parsedItems = bulkText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.includes("="))
+      .map((line) => {
+        const [name, durationStr] = line.split("=");
+        return {
+          name: name.trim(),
+          duration: parseInt(durationStr.trim(), 10) || 1,
+        };
+      });
+
+    if (parsedItems.length > 0) {
+      setEventItems(parsedItems);
+      setShowBulkEditor(false);
+      setBulkText("");
+    }
   };
 
   const handleSave = () => {
@@ -63,23 +85,52 @@ function SetupModal({ title, events, initialNotes, onSave, onClose }) {
           ))}
         </div>
 
-        <button className="add-event" onClick={handleAdd}>
-          Add Event
-        </button>
+        <div style={{ marginTop: "10px" }}>
+          <button className="add-event" onClick={handleAdd}>
+            Add Event
+          </button>
+          <button
+            style={{ marginLeft: "10px" }}
+            onClick={() => setShowBulkEditor(!showBulkEditor)}
+          >
+            {showBulkEditor ? "Close Editor" : "Import via Text Editor"}
+          </button>
+        </div>
 
-        <div>
+        {showBulkEditor && (
+          <div style={{ marginTop: "20px" }}>
+            <p>
+              Enter items as: <code>Name=Duration</code> per line
+            </p>
+            <textarea
+              rows="6"
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+              placeholder={`Opening=5\nKeynote=30\nBreak=15`}
+              style={{ width: "100%", fontFamily: "monospace", padding: "8px" }}
+            />
+            <div style={{ marginTop: "10px", textAlign: "right" }}>
+              <button onClick={handleBulkImport}>Import</button>
+            </div>
+          </div>
+        )}
+
+        <div style={{ marginTop: "20px" }}>
           <label htmlFor="initialNotes">Initial Floor Director Notes:</label>
           <textarea
             id="initialNotes"
             rows="4"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
+            style={{ width: "100%", padding: "8px" }}
           />
         </div>
 
         <div style={{ marginTop: "20px", textAlign: "right" }}>
           <button onClick={handleSave}>Save Setup</button>
-          <button onClick={onClose}>Cancel</button>
+          <button onClick={onClose} style={{ marginLeft: "10px" }}>
+            Cancel
+          </button>
         </div>
       </div>
     </div>

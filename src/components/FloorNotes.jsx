@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 function FloorNotes({ notes, onNotesChange }) {
   const [editableNotes, setEditableNotes] = useState(notes.join("\n"));
-  const [fontSize, setFontSize] = useState(16); // default 16px
+  const [fontSize, setFontSize] = useState(32); // default 16px
 
   const handleChange = (e) => {
     setEditableNotes(e.target.value);

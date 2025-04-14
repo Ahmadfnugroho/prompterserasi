@@ -12,10 +12,11 @@ function NotesModal({ notes, onSave, onClose }) {
       <div className="setup-form-content" style={{ maxWidth: "600px" }}>
         <h2>Edit Floor Director Notes</h2>
         <textarea
-          id="notesTextarea"
-          rows="10"
-          value={currentNotes}
-          onChange={(e) => setCurrentNotes(e.target.value)}
+          rows="6"
+          value={bulkText}
+          onChange={(e) => setBulkText(e.target.value)}
+          placeholder={`Opening = - Welcome guests - Mention platforms = 5\nKeynote = - Intro speaker - Highlight topic = 30`}
+          style={{ width: "100%", fontFamily: "monospace", padding: "8px" }}
         />
         <div style={{ marginTop: "20px", textAlign: "right" }}>
           <button onClick={handleSave}>Save Notes</button>

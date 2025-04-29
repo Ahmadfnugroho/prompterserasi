@@ -20,20 +20,30 @@ function App() {
 
   const flattenEvents = (events) => {
     const flat = [];
-    events.forEach((event) => {
-      flat.push({ type: "event", name: event.name, duration: event.duration });
-      event.subEvents.forEach((sub) =>
-        flat.push({ type: "sub", name: sub, duration: event.duration })
+    events.forEach((event, eventIndex) => {
+      flat.push({
+        type: "event",
+        name: event.name,
+        duration: event.duration,
+        parentIndex: eventIndex,
+      });
+      event.subEvents.forEach((sub, subIndex) =>
+        flat.push({
+          type: "sub",
+          name: sub,
+          parentIndex: eventIndex,
+        })
       );
     });
     return flat;
   };
 
+  // Hanya set waktu awal saat pertama kali atau saat flatList berubah
   useEffect(() => {
-    if (flatList.length > 0) {
-      setTimeLeft(flatList[currentIndex].duration * 60);
+    if (flatList.length > 0 && currentIndex === 0) {
+      setTimeLeft(flatList[0].duration * 60);
     }
-  }, [flatList, currentIndex]);
+  }, [flatList]); // Hanya depend pada flatList
 
   useEffect(() => {
     let timer;
@@ -51,15 +61,13 @@ function App() {
   const next = () => {
     if (currentIndex < flatList.length - 1) {
       const nextItem = flatList[currentIndex + 1];
-      const currentItem = flatList[currentIndex];
-      const isSameEvent =
-        currentItem.type === "sub" &&
-        nextItem.duration === currentItem.duration;
 
       setTransitioning(true);
       setTimeout(() => {
         setCurrentIndex(currentIndex + 1);
-        if (!isSameEvent) {
+
+        // Hanya reset waktu jika berpindah ke event baru (type "event")
+        if (nextItem.type === "event") {
           setTimeLeft(nextItem.duration * 60);
         }
         setTransitioning(false);
@@ -69,9 +77,14 @@ function App() {
 
   const previous = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
       const prevItem = flatList[currentIndex - 1];
-      setTimeLeft(prevItem.duration * 60);
+
+      setCurrentIndex(currentIndex - 1);
+
+      // Hanya reset waktu jika kembali ke event utama (type "event")
+      if (prevItem.type === "event") {
+        setTimeLeft(prevItem.duration * 60);
+      }
     }
   };
 

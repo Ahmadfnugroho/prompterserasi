@@ -89,12 +89,37 @@ function SetupModal({ title, events, initialNotes, onSave, onClose }) {
       <div
         className="setup-form-content"
         style={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
           maxWidth: "90vw",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          padding: "10px",
+          maxHeight: "100vh",
+          overflow: "hidden",
+          padding: "20px",
+          backgroundColor: "#fff",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+          borderRadius: "8px",
         }}
       >
+        <div
+          className="setup-form-scrollable"
+          style={{
+            overflowY: "auto",
+            maxHeight: "65vh", // hanya bagian event list yang scroll
+            paddingRight: "10px",
+            marginBottom: "10px",
+          }}
+        >
+          {/* Semua isi editable: input title, import, daftar event */}
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <button onClick={handleSave}>Save</button>
+          <button onClick={onClose} style={{ marginLeft: "10px" }}>
+            Cancel
+          </button>
+        </div>
+
         <h2>Event Setup</h2>
 
         <div style={{ margin: "5px 0" }}>
@@ -191,10 +216,25 @@ function SetupModal({ title, events, initialNotes, onSave, onClose }) {
           <button onClick={handleAdd}>Add Event</button>
         </div>
 
-        <div style={{ marginTop: "20px", fontSize: "12px" }}>
-          <label>Floor Director Notes:</label>
+        <div
+          style={{
+            marginTop: "20px",
+            fontSize: "12px",
+            display: "flex",
+            justifyContent: "left",
+            alignItems: "left",
+          }}
+        >
+          <label
+            style={{
+              fontSize: "12px",
+              color: "black",
+            }}
+          >
+            Floor Director Notes:
+          </label>
           <textarea
-            style={{ fontSize: "12px" }}
+            style={{ fontSize: "12px", color: "black" }}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={4}

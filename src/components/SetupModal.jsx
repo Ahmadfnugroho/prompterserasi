@@ -86,19 +86,28 @@ function SetupModal({ title, events, initialNotes, onSave, onClose }) {
 
   return (
     <div className="setup-form">
-      <div className="setup-form-content">
+      <div
+        className="setup-form-content"
+        style={{
+          maxWidth: "90vw",
+          maxHeight: "90vh",
+          overflowY: "auto",
+          padding: "10px",
+        }}
+      >
         <h2>Event Setup</h2>
 
-        <div>
+        <div style={{ margin: "5px 0" }}>
           <label>Event Title:</label>
           <input
             type="text"
             value={localTitle}
             onChange={(e) => setLocalTitle(e.target.value)}
+            style={{ width: "100%", padding: "5px" }}
           />
         </div>
 
-        <div style={{ margin: "15px 0", fontSize: "12px" }}>
+        <div style={{ margin: "10px 0" }}>
           <button onClick={() => setShowTextEditor(!showTextEditor)}>
             {showTextEditor ? "Hide Text Editor" : "Import via Text Editor"}
           </button>
@@ -141,9 +150,17 @@ function SetupModal({ title, events, initialNotes, onSave, onClose }) {
           </div>
         )}
 
-        <div id="eventItems" style={{ marginTop: "15px", fontSize: "12px" }}>
+        <div
+          style={{
+            marginTop: "15px",
+            maxHeight: "300px",
+            overflowY: "auto",
+            border: "1px solid #444",
+            padding: "5px",
+          }}
+        >
           {eventItems.map((item, index) => (
-            <div key={index} className="event-item">
+            <div key={index} className="event-item" style={{ margin: "5px 0" }}>
               <input
                 type="text"
                 placeholder="Event name"

@@ -12,11 +12,11 @@ function FloorNotes({ notes, onNotesChange }) {
   };
 
   const increaseFontSize = () => {
-    setFontSize((prev) => Math.min(prev + 2, 38)); // batas atas 32px
+    setFontSize((prev) => Math.min(prev + 10, 70)); // batas atas 32px
   };
 
   const decreaseFontSize = () => {
-    setFontSize((prev) => Math.max(prev - 2, 16)); // batas bawah 10px
+    setFontSize((prev) => Math.max(prev - 10, 20)); // batas bawah 10px
   };
 
   return (

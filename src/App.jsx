@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import ControlPanel from "./components/ControlPanel";
 import FloorNotes from "./components/FloorNotes";
 import Timer from "./components/Timer";
@@ -8,145 +8,115 @@ import "./styles.css";
 
 function App() {
   const [events, setEvents] = useState([]);
-
-  const [currentEventIndex, setCurrentEventIndex] = useState(0);
-  const [currentSubEventIndex, setCurrentSubEventIndex] = useState(0);
+  const [flatList, setFlatList] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [floorNotes, setFloorNotes] = useState([]);
   const [showSetup, setShowSetup] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [eventTitle, setEventTitle] = useState("SERASI 2025 EPISODE 3");
+  const [transitioning, setTransitioning] = useState(false);
 
-  // Refs for auto-scrolling
-  const subEventContainerRef = useRef();
-  const activeSubEventRef = useRef();
+  const flattenEvents = (events) => {
+    const flat = [];
+    events.forEach((event) => {
+      flat.push({ type: "event", name: event.name, duration: event.duration });
+      event.subEvents.forEach((sub) =>
+        flat.push({ type: "sub", name: sub, duration: event.duration })
+      );
+    });
+    return flat;
+  };
 
-  // Initialize timer and scroll position
   useEffect(() => {
-    if (events.length > 0) {
-      setTimeLeft(events[currentEventIndex].duration * 60);
-      setCurrentSubEventIndex(0);
+    if (flatList.length > 0) {
+      setTimeLeft(flatList[currentIndex].duration * 60);
     }
-  }, [events, currentEventIndex]);
+  }, [flatList, currentIndex]);
 
-  // Auto-scroll to active sub-event
-  useEffect(() => {
-    if (activeSubEventRef.current) {
-      activeSubEventRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-  }, [currentSubEventIndex]);
-
-  // Timer logic
   useEffect(() => {
     let timer;
-    if (isRunning && timeLeft > 0) {
+    if (isRunning) {
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0 && isRunning) {
-      nextEvent();
     }
     return () => clearInterval(timer);
-  }, [isRunning, timeLeft]);
+  }, [isRunning]);
 
   const startTimer = () => setIsRunning(true);
   const pauseTimer = () => setIsRunning(false);
 
-  const nextSubEvent = () => {
-    const currentEvent = events[currentEventIndex];
-    if (currentSubEventIndex < currentEvent.subEvents.length - 1) {
-      setCurrentSubEventIndex(currentSubEventIndex + 1);
-    } else {
-      nextEvent();
+  const next = () => {
+    if (currentIndex < flatList.length - 1) {
+      const nextItem = flatList[currentIndex + 1];
+      const currentItem = flatList[currentIndex];
+      const isSameEvent =
+        currentItem.type === "sub" &&
+        nextItem.duration === currentItem.duration;
+
+      setTransitioning(true);
+      setTimeout(() => {
+        setCurrentIndex(currentIndex + 1);
+        if (!isSameEvent) {
+          setTimeLeft(nextItem.duration * 60);
+        }
+        setTransitioning(false);
+      }, 150);
     }
   };
 
-  const previousSubEvent = () => {
-    if (currentSubEventIndex > 0) {
-      setCurrentSubEventIndex(currentSubEventIndex - 1);
-    } else if (currentEventIndex > 0) {
-      // Move to last sub-event of previous main event
-      setCurrentEventIndex(currentEventIndex - 1);
-      setCurrentSubEventIndex(
-        events[currentEventIndex - 1].subEvents.length - 1
-      );
-    }
-  };
-
-  const nextEvent = () => {
-    if (currentEventIndex < events.length - 1) {
-      setCurrentEventIndex(currentEventIndex + 1);
-      setCurrentSubEventIndex(0);
-      setTimeLeft(events[currentEventIndex + 1].duration * 60);
-    } else {
-      setIsRunning(false);
+  const previous = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      const prevItem = flatList[currentIndex - 1];
+      setTimeLeft(prevItem.duration * 60);
     }
   };
 
   const handleSaveSetup = (newEvents, newNotes, newTitle) => {
+    const flattened = flattenEvents(newEvents);
     setEvents(newEvents);
+    setFlatList(flattened);
     setFloorNotes(newNotes);
     setEventTitle(newTitle);
-    setCurrentEventIndex(0);
-    setCurrentSubEventIndex(0);
-    setTimeLeft(newEvents[0]?.duration * 60 || 0);
+    setCurrentIndex(0);
+    setTimeLeft(flattened[0]?.duration * 60 || 0);
     setIsRunning(false);
     setShowSetup(false);
   };
 
   return (
     <div className="container">
-      <div className="header">{eventTitle}</div>
-
-      <div className="playing-now">
-        <div className="playing-now-label">PLAYING NOW</div>
-        <div className="playing-now-content">
-          <div>
-            <strong>{events[currentEventIndex]?.name || "No Event"}</strong>
-            <div style={{ fontSize: "0.8em", color: "#666", marginTop: "5px" }}>
-              ({currentSubEventIndex + 1}/
-              {events[currentEventIndex]?.subEvents.length})
+      <div className="main-content">
+        <div className={`playing-now ${transitioning ? "fade-in" : ""}`}>
+          <div className="playing-now-label">PLAYING NOW</div>
+          <div className="playing-now-content">
+            <div className="current-event">
+              {flatList[currentIndex]?.name || "No Event"}
             </div>
           </div>
-          <div className="sub-event-container" ref={subEventContainerRef}>
-            {events[currentEventIndex]?.subEvents.map((subEvent, index) => (
-              <div
-                key={index}
-                ref={index === currentSubEventIndex ? activeSubEventRef : null}
-                className={`sub-event ${
-                  index === currentSubEventIndex ? "active" : ""
-                }`}
-              >
-                {subEvent}
-              </div>
-            ))}
-          </div>
         </div>
-      </div>
 
-      <div className="next-up">
-        <div className="next-up-label">NEXT UP</div>
-        <div className="next-up-content">
-          {currentEventIndex < events.length - 1 ? (
-            <>
-              <strong>{events[currentEventIndex + 1]?.name}</strong>
-              <div className="next-up-sub-event-container">
-                {events[currentEventIndex + 1]?.subEvents
-                  .slice(0, 3)
-                  .map((subEvent, index) => (
-                    <div key={index} className="next-up-sub-event">
-                      {subEvent}
-                    </div>
-                  ))}
-              </div>
-            </>
-          ) : (
-            "END OF EVENT"
-          )}
+        <div className="next-up">
+          <div className="next-up-label">NEXT UP</div>
+          <div className="next-up-content">
+            {[1, 2].map((offset) => {
+              const nextItem = flatList[currentIndex + offset];
+              if (!nextItem) return null;
+              return (
+                <div
+                  key={offset}
+                  className={`next-event-item ${
+                    offset === 2 ? "secondary" : ""
+                  }`}
+                >
+                  {nextItem.name}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -159,16 +129,12 @@ function App() {
         isRunning={isRunning}
         onStart={startTimer}
         onPause={pauseTimer}
-        onNext={nextSubEvent}
-        onPrevious={previousSubEvent}
+        onNext={next}
+        onPrevious={previous}
         onSetup={() => setShowSetup(true)}
         onEditNotes={() => setShowNotes(true)}
-        hasNext={
-          currentSubEventIndex <
-            events[currentEventIndex]?.subEvents.length - 1 ||
-          currentEventIndex < events.length - 1
-        }
-        hasPrevious={currentSubEventIndex > 0 || currentEventIndex > 0}
+        hasNext={currentIndex < flatList.length - 1}
+        hasPrevious={currentIndex > 0}
       />
 
       {showSetup && (
